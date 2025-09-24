@@ -1,97 +1,152 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+## 추가학습
+### 유틸리티 타입
+#### Pick - Omit의 반대
+```ts
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  password: string;
+}
 
-# Getting Started
+// 특정 속성만 선택
+type PublicUser = Pick<User, 'id' | 'name' | 'email'>;
+// { id: number; name: string; email: string; }
+```
+#### Partial - 모든 속성을 선택적으로
+```ts
+type PartialUser = Partial<User>;
+// { id?: number; name?: string; email?: string; password?: string; }
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+// React Native에서 업데이트 함수에 유용
+const updateUser = (updates: Partial<User>) => {
+  // 일부 필드만 업데이트 가능
+};
+```
+#### Required - 모든 속성을 필수로
+```ts
+interface OptionalProps {
+  title?: string;
+  subtitle?: string;
+}
 
-## Step 1: Start Metro
-
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
-
-To start the Metro dev server, run the following command from the root of your React Native project:
-
-```sh
-# Using npm
-npm start
-
-# OR using Yarn
-yarn start
+type RequiredProps = Required<OptionalProps>;
+// { title: string; subtitle: string; }
 ```
 
-## Step 2: Build and run your app
+#### Record - 키-값 쌍 타입 생성
+```ts
+  type UserRoles = Record<string, boolean>;
+  const userRoles: UserRoles = {
+    admin: true,
+    user: true,
+    guest: true,
+  };
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+  type StatusMap = Record<'loading' | 'success' | 'error', string>;
+  const statusMap: StatusMap = {
+    loading: 'Loading...',
+    success: 'Success!',
+    error: 'false',
+  };
 
-### Android
-
-```sh
-# Using npm
-npm run android
-
-# OR using Yarn
-yarn android
 ```
 
-### iOS
+#### React Native에서 실용적인 사용 예시
+```ts
+// 컴포넌트 Props 정의
+interface ButtonProps {
+  title: string;
+  onPress: () => void;
+  disabled?: boolean;
+  style?: ViewStyle;
+  testID?: string;
+}
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+// 1. 특정 props 제외하고 새 타입 생성
+type SimpleButtonProps = Omit<ButtonProps, 'style' | 'testID'>;
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+// 2. 특정 props만 선택
+type ButtonActions = Pick<ButtonProps, 'onPress' | 'disabled'>;
 
-```sh
-bundle install
+// 3. 모든 props를 선택적으로 (기본값 제공용)
+type ButtonDefaults = Partial<ButtonProps>;
+
+// 4. API 응답과 폼 데이터 구분
+interface ApiUser {
+  id: number;
+  name: string;
+  email: string;
+  createdAt: string;
+}
+
+type UserFormData = Omit<ApiUser, 'id' | 'createdAt'>;
+// { name: string; email: string; }
+
+type UserUpdate = Partial<UserFormData>;
+// { name?: string; email?: string; }
 ```
 
-Then, and every time you update your native dependencies, run:
+#### 조합해서 사용하기
+```ts
+// 복합 유틸리티 타입 사용
+interface FullScreenProps {
+  navigation: any;
+  route: any;
+  title: string;
+  showBackButton: boolean;
+  headerStyle?: ViewStyle;
+}
 
-```sh
-bundle exec pod install
+// navigation, route 제외하고 나머지는 선택적으로
+type ScreenConfigProps = Partial<Omit<FullScreenProps, 'navigation' | 'route'>>;
+
+// 또는 Pick + Partial 조합
+type HeaderProps = Partial<Pick<FullScreenProps, 'title' | 'showBackButton' | 'headerStyle'>>;
 ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-```sh
-# Using npm
-npm run ios
-
-# OR using Yarn
-yarn ios
+### Bodoc 에서의 Thunk 예시
+```ts
+/**
+   * 생체 인증 사용 여부 confirm 함수
+   * @param type
+   */
+  const showConfirmBio = (type) => {
+    const successFn = () => {
+      dispatch(makeBioData());
+      dispatch(userSetLock({ useBio: Toggle.ON }));
+      dispatch(userSetLock({ useEasyPassword: Toggle.ON }));
+      navigate(currentTab);
+    };
+    ...
+  }
 ```
+```ts
+export const makeBioData =
+  (reset = true) =>
+  async (dispatch, getState) => {
+    try {
+      let keyExist = await keysExist();
+      if (keyExist) {
+        if (!reset) {
+          dispatch({
+            type: ACTION_TYPES.USER_BIO_DONE,
+          });
+          return;
+        }
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
-
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
-
-## Step 3: Modify your app
-
-Now that you have successfully run the app, let's make changes!
-
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+        let proHWDelete = deleteKeys();
+        let proSEVERDelete = apiDeleteKey({});
+        await Promise.all([proHWDelete, proSEVERDelete]);
+      }
+    } catch (e) {
+      dispatch({
+        type: ACTION_TYPES.USER_BIO_ERROR,
+        error: ErrorCode.E_BIO_BAD_KEY,
+      });
+    }
+    dispatch({
+      type: ACTION_TYPES.USER_BIO_REQ,
+    });
+  }
+```
