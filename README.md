@@ -1,5 +1,23 @@
 ## 추가학습
 ### 유틸리티 타입
+
+#### Omit - 특정 속성 제외
+```ts
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  password: string;
+}
+
+// 특정 속성 제외
+type PublicUser = Omit<User, 'password'>;
+// { id: number; name: string; email: string; }
+
+type UserWithoutId = Omit<User, 'id' | 'password'>;
+// { name: string; email: string; }
+```
+
 #### Pick - Omit의 반대
 ```ts
 interface User {
@@ -103,6 +121,25 @@ type ScreenConfigProps = Partial<Omit<FullScreenProps, 'navigation' | 'route'>>;
 
 // 또는 Pick + Partial 조합
 type HeaderProps = Partial<Pick<FullScreenProps, 'title' | 'showBackButton' | 'headerStyle'>>;
+
+// Required + Omit 조합
+type RequiredUserData = Required<Omit<ApiUser, 'id'>>;
+// { name: string; email: string; createdAt: string; } - 모두 필수
+```
+
+#### 실제 React Native 컴포넌트에서 활용
+```ts
+// TextInput 확장 예시
+interface CustomInputProps extends Omit<TextInputProps, 'onChangeText'> {
+  label: string;
+  onChangeText: (text: string, isValid: boolean) => void; // 파라미터 추가
+}
+// TouchableOpacity 확장 예시
+interface CustomButtonProps extends Omit<TouchableOpacityProps, 'onPress'> {
+  title: string;
+  onPress: () => Promise<void> | void;
+  loading?: boolean;
+}
 ```
 
 ### Bodoc 에서의 Thunk 예시
