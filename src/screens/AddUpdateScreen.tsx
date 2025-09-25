@@ -1,12 +1,14 @@
 import { View, StyleSheet } from 'react-native';
 import Header from '../designsystem/Header';
+import { useRootNavigation } from '../navigations/RootNavigation';
 
 const AddUpdateScreen = () => {
+  const navigation = useRootNavigation();
   return (
     <View style={styles.container}>
       <Header>
         <Header.Title>Add/Update screen</Header.Title>
-        <Header.Icon name="close" onPress={() => {}} />
+        <Header.Icon name="close" onPress={navigation.goBack} />
       </Header>
     </View>
   );

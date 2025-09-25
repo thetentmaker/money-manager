@@ -5,6 +5,7 @@ import Icon from '../designsystem/Icons';
 import Typography from '../designsystem/Typography';
 import Spacer from '../designsystem/Spacer';
 import RemoteImage from '../designsystem/RemoteImage';
+import useAccountHistoryListItem from '../hooks/useAccountHistoryListItem';
 
 interface AccountHistoryListItemViewProps {
   item: AccountBookHistory;
@@ -15,8 +16,8 @@ const AccountHistoryListItemView = ({
   item,
   onPressItem,
 }: AccountHistoryListItemViewProps) => {
-  const iconName = item.type === '사용' ? 'remove-circle' : 'add-circle';
-  const iconColor = item.type === '사용' ? 'red' : 'blue';
+  const { iconName, iconColor, displayCreateAt } =
+    useAccountHistoryListItem(item);
   return (
     <Button onPress={() => onPressItem(item)}>
       <View style={styles.container}>
@@ -24,9 +25,7 @@ const AccountHistoryListItemView = ({
         <View style={styles.content}>
           <Typography variant="body1">{item.comment}</Typography>
           <Spacer size={4} />
-          <Typography variant="body2">
-            {item.createdAt.toLocaleString()}
-          </Typography>
+          <Typography variant="body2">{displayCreateAt}</Typography>
         </View>
         {item.photoUrl && (
           <>
