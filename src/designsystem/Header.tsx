@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, IoniconsIconName } from "@react-native-vector-icons/ionicons";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -12,7 +12,7 @@ interface HeaderTitleProps {
 }
 
 interface HeaderIconProps {
-  name: keyof typeof Ionicons.glyphMap;
+  name: IoniconsIconName;
   onPress?: () => void;
   size?: number;
   color?: string;

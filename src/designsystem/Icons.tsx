@@ -1,10 +1,8 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
-import Octicons from '@expo/vector-icons/Octicons';
+import Ionicons from '@react-native-vector-icons/ionicons';
 import React from 'react';
 import { StyleProp, TextStyle } from 'react-native';
 
-type AnyIcon = typeof Ionicons | typeof Octicons;
-const mapping: Record<string, { Component: AnyIcon; glyph: string }> = {
+const mapping: Record<string, { Component: typeof Ionicons; glyph: string }> = {
   // Social
   heart: { Component: Ionicons, glyph: 'heart' },
   like: { Component: Ionicons, glyph: 'thumbs-up' },
@@ -46,7 +44,7 @@ interface IconProps {
 }
 
 const Icon: React.FC<IconProps> = ({ name, size = 24, color = '#000', style }) => {
-  const fallback = { Component: Octicons, glyph: 'question' };
+  const fallback = { Component: Ionicons, glyph: 'question' };
   const { Component, glyph } = mapping[name] || fallback;
 
   return (
