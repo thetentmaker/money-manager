@@ -5,30 +5,10 @@ import useMain from '../hooks/useMain';
 import Button from '../designsystem/Button';
 import Icon from '../designsystem/Icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import SQLite, { SQLiteDatabase, SQLError } from 'react-native-sqlite-storage';
-import { useEffect } from 'react';
 
 const MainScreen = () => {
   const safeAreaInsets = useSafeAreaInsets();
-  const { list, onPressItem } = useMain();
-  const { onPressAdd } = useMain();
-
-  useEffect(() => {
-    const onDbError = (err: SQLError) => {
-      console.log('Open database error', err);
-    };
-    const onDbSuccess = (dbConn: SQLiteDatabase) => {
-      console.log('Open database success', dbConn);
-    };
-    SQLite.openDatabase(
-      { name: 'account_history.db',
-        location: 'default',
-        createFromLocation: "~www/account_history.db",
-      },
-      onDbSuccess,
-      onDbError,
-    );
-  }, []);
+  const { list, onPressItem, onPressAdd } = useMain();
 
   return (
     <View style={styles.container}>

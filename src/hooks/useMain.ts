@@ -11,6 +11,7 @@ const useMain = () => {
       type: '사용',
       price: 10000,
       comment: 'TEST_01',
+      date: now,
       createdAt: now,
       updatedAt: now,
       photoUrl: null,
@@ -20,6 +21,7 @@ const useMain = () => {
       type: '수입',
       price: 20000,
       comment: 'TEST_02',
+      date: now,
       createdAt: now,
       updatedAt: now,
       photoUrl:

@@ -1,34 +1,43 @@
-import React, { useState } from "react";
-import { StyleSheet, Text, TextInput, View, KeyboardTypeOptions } from "react-native";
+import React, { useState } from 'react';
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  KeyboardTypeOptions,
+  ReturnKeyTypeOptions,
+} from 'react-native';
 
-interface MultiLineInputProps {
+interface SingleLineInputProps {
   placeholder?: string;
   value?: string;
   onChangeText?: (text: string) => void;
   onSubmitEditing?: () => void;
   maxLength?: number;
-  numberOfLines?: number;
   height?: number;
   fontSize?: number;
   style?: any;
   error?: string;
   disabled?: boolean;
   keyboardType?: KeyboardTypeOptions;
+  returnKeyType?: ReturnKeyTypeOptions;
+  secureTextEntry?: boolean;
 }
 
-const MultiLineInput: React.FC<MultiLineInputProps> = ({
-  placeholder = "내용을 입력하세요",
+const SingleLineInput: React.FC<SingleLineInputProps> = ({
+  placeholder = '내용을 입력하세요',
   value,
   onChangeText,
   onSubmitEditing,
-  maxLength = 500,
-  numberOfLines = 4,
+  maxLength = 200,
   height,
   fontSize,
   style,
   error,
   disabled = false,
   keyboardType,
+  returnKeyType,
+  secureTextEntry,
 }) => {
   const [isFocused, setIsFocused] = useState(false);
 
@@ -48,20 +57,14 @@ const MultiLineInput: React.FC<MultiLineInputProps> = ({
         value={value}
         onChangeText={onChangeText}
         onSubmitEditing={onSubmitEditing}
-        multiline
-        numberOfLines={numberOfLines}
         maxLength={maxLength}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
         editable={!disabled}
-        textAlignVertical="top"
         keyboardType={keyboardType}
+        returnKeyType={returnKeyType}
+        secureTextEntry={secureTextEntry}
       />
-      {maxLength && (
-        <Text style={styles.characterCount}>
-          {value?.length || 0}/{maxLength}
-        </Text>
-      )}
       {error && <Text style={styles.errorText}>{error}</Text>}
     </View>
   );
@@ -69,40 +72,33 @@ const MultiLineInput: React.FC<MultiLineInputProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    width: "100%",
+    width: '100%',
   },
   input: {
     borderWidth: 1,
-    borderColor: "#E0E0E0",
+    borderColor: '#E0E0E0',
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    backgroundColor: "#FFFFFF",
-    minHeight: 100,
+    backgroundColor: '#FFFFFF',
   },
   focusedInput: {
-    borderColor: "#007AFF",
+    borderColor: '#007AFF',
     borderWidth: 2,
   },
   errorInput: {
-    borderColor: "#FF3B30",
+    borderColor: '#FF3B30',
     borderWidth: 2,
   },
   disabledInput: {
-    backgroundColor: "#F5F5F5",
-    color: "#999999",
-  },
-  characterCount: {
-    textAlign: "right",
-    fontSize: 12,
-    color: "#8E8E93",
-    marginTop: 4,
+    backgroundColor: '#F5F5F5',
+    color: '#999999',
   },
   errorText: {
     fontSize: 12,
-    color: "#FF3B30",
+    color: '#FF3B30',
     marginTop: 4,
   },
 });
 
-export default MultiLineInput;
+export default SingleLineInput;
