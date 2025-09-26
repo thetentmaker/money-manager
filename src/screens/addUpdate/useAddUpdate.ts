@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   useRootNavigation,
   useRootRoute,
@@ -29,10 +29,8 @@ const useAddUpdate = () => {
       if (route.name === 'Update') return;
 
       setItem(prevState => ({ ...prevState, type }));
-
-      console.log('onPressType item:', item);
     },
-    [route.name, item],
+    [route.name],
   );
 
   const onChangePrice = useCallback<(text: string) => void>(text => {
@@ -55,7 +53,6 @@ const useAddUpdate = () => {
   }, []);
 
   const onPressCalendar = useCallback(() => {
-    console.log('onPressCalendar');
     navigation.push('CalendarSelect', {
       onSelectDay: (date: number) => {
         setItem(prevState => ({ ...prevState, date }));
@@ -66,12 +63,19 @@ const useAddUpdate = () => {
   const onPressSave = useCallback(() => {
     console.log('onPressSave item:', item);
     if (route.name === 'Add') {
-      insertItem(item).then(() => {
-        navigation.goBack();
-      }).catch((error) => {
-        console.error('insertItem error:', error);
-        Alert.alert('저장 실패', '저장 실패하였습니다.');
-      });
+      insertItem(item)
+        .then(() => {
+          navigation.goBack();
+        })
+        .catch(error => {
+          error.message;
+          Alert.alert('저장 실패', error.message, [
+            {
+              text: '확인',
+              onPress: () => {},
+            },
+          ]);
+        });
     }
   }, [insertItem, item, route.name, navigation]);
 
@@ -133,9 +137,18 @@ const useAddUpdate = () => {
 
   const commentValue = item.comment;
 
+  const onPressPhoto = useCallback(() => {
+    navigation.push('TakePhoto', {
+      onTakePhoto: (photoUrl: string) => {
+        setItem(prevState => ({ ...prevState, photoUrl }));
+      },
+    });
+  }, [navigation]);
+  const photoUrl = useMemo(() => {
+    return item.photoUrl;
+  }, [item.photoUrl]);
+
   return {
-    item,
-    setItem,
     onPressType,
     onChangePrice,
     priceValue,
@@ -151,6 +164,8 @@ const useAddUpdate = () => {
     incomeTextColor,
     calendarColorStyle,
     calendarDisplayText,
+    onPressPhoto,
+    photoUrl,
   };
 };
 

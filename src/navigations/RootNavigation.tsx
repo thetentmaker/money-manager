@@ -10,6 +10,7 @@ import AddUpdateScreen from '../screens/addUpdate/AddUpdateScreen';
 import AccountBookHistory from '../data/AccountBookHistory';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import CalendarSelectScreen from '../screens/calendarSelect/CalendarSelectScreen';
+import TakePhotoScreen from '../screens/takePhoto/TakePhotoScreen';
 
 type ScreenParams = {
   Add: undefined;
@@ -18,6 +19,7 @@ type ScreenParams = {
   Detail: { item: AccountBookHistory };
   MonthlyAverage: undefined;
   CalendarSelect: { onSelectDay: (date: number) => void };
+  TakePhoto: { onTakePhoto: (photoUrl: string) => void };
 };
 
 const Stack = createNativeStackNavigator<ScreenParams>();
@@ -35,6 +37,7 @@ const RootNavigation = () => {
       <Stack.Screen name="Detail" component={DetailScreen} />
       <Stack.Screen name="MonthlyAverage" component={MonthlyScreen} />
       <Stack.Screen name="CalendarSelect" component={CalendarSelectScreen} />
+      <Stack.Screen name="TakePhoto" component={TakePhotoScreen} />
     </Stack.Navigator>
   );
 };
@@ -44,7 +47,6 @@ const useRootNavigation = <RouteName extends keyof ScreenParams>() =>
 
 const useRootRoute = <RouteName extends keyof ScreenParams>() =>
   useRoute<RouteProp<ScreenParams, RouteName>>();
-
 
 export default RootNavigation;
 export { useRootNavigation, useRootRoute };

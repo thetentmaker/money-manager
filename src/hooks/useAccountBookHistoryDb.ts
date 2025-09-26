@@ -23,6 +23,7 @@ const useAccountBookHistoryDb = () => {
         createFromLocation: 1,
       },
       (db: SQLiteDatabase) => {
+        db.executeSql('CREATE TABLE IF NOT EXISTS account_history (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT, price INTEGER, comment TEXT, date INTEGER, photo_url TEXT, created_at INTEGER, updated_at INTEGER)');
         console.log('DB opened', db);
       },
       (err: any) => {

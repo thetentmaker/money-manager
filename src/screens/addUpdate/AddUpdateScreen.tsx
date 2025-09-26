@@ -7,9 +7,9 @@ import Spacer from '../../designsystem/Spacer';
 import SingleLineInput from '../../designsystem/SingleLineInput';
 import Icon from '../../designsystem/Icons';
 import MultiLineInput from '../../designsystem/MultiLineInput';
+import RemoteImage from '../../designsystem/RemoteImage';
 
 const AddUpdateScreen = () => {
-
   const {
     onPressType,
     onChangePrice,
@@ -26,8 +26,9 @@ const AddUpdateScreen = () => {
     incomeTextColor,
     calendarColorStyle,
     calendarDisplayText,
+    onPressPhoto,
+    photoUrl,
   } = useAddUpdate();
-
   return (
     <View style={styles.container}>
       <Header>
@@ -82,10 +83,19 @@ const AddUpdateScreen = () => {
           </View>
           <Spacer size={15} horizontal />
           <View>
-            <Button onPress={() => {}}>
-              <View style={styles.cameraButton}>
-                <Icon name="plus" size={24} color="gray" />
-              </View>
+            <Button onPress={onPressPhoto}>
+              {photoUrl ? (
+                <RemoteImage
+                  uri={photoUrl}
+                  width={100}
+                  height={100}
+                  style={styles.image}
+                />
+              ) : (
+                <View style={styles.cameraButton}>
+                  <Icon name="plus" size={24} color="gray" />
+                </View>
+              )}
             </Button>
           </View>
         </View>
@@ -180,5 +190,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 8,
+  },
+  image: {
+    borderRadius: 12,
   },
 });
