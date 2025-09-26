@@ -1,12 +1,12 @@
 import { View, StyleSheet, ScrollView } from 'react-native';
-import Header from '../designsystem/Header';
-import useAddUpdate from '../hooks/useAddUpdate';
-import Button from '../designsystem/Button';
-import Typography from '../designsystem/Typography';
-import Spacer from '../designsystem/Spacer';
-import SingleLineInput from '../designsystem/SingleLineInput';
-import Icon from '../designsystem/Icons';
-import MultiLineInput from '../designsystem/MultiLineInput';
+import Header from '../../designsystem/Header';
+import useAddUpdate from './useAddUpdate';
+import Button from '../../designsystem/Button';
+import Typography from '../../designsystem/Typography';
+import Spacer from '../../designsystem/Spacer';
+import SingleLineInput from '../../designsystem/SingleLineInput';
+import Icon from '../../designsystem/Icons';
+import MultiLineInput from '../../designsystem/MultiLineInput';
 
 const AddUpdateScreen = () => {
   const {

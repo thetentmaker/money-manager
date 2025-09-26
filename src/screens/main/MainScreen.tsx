@@ -1,9 +1,9 @@
 import { View, StyleSheet, FlatList } from 'react-native';
-import Header from '../designsystem/Header';
-import AccountHistoryListItemView from '../components/AccountHistoryListItemView';
-import useMain from '../hooks/useMain';
-import Button from '../designsystem/Button';
-import Icon from '../designsystem/Icons';
+import Header from '../../designsystem/Header';
+import AccountHistoryListItemView from '../../components/AccountHistoryListItemView';
+import useMain from './useMain';
+import Button from '../../designsystem/Button';
+import Icon from '../../designsystem/Icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const MainScreen = () => {

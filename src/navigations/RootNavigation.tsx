@@ -3,10 +3,10 @@ import {
   NativeStackNavigationOptions,
   NativeStackNavigationProp,
 } from '@react-navigation/native-stack';
-import MainScreen from '../screens/MainScreen';
-import DetailScreen from '../screens/DetailScreen';
-import MonthlyScreen from '../screens/MonthlyScreen';
-import AddUpdateScreen from '../screens/AddUpdateScreen';
+import MainScreen from '../screens/main/MainScreen';
+import DetailScreen from '../screens/detail/DetailScreen';
+import MonthlyScreen from '../screens/monthly/MonthlyScreen';
+import AddUpdateScreen from '../screens/addUpdate/AddUpdateScreen';
 import AccountBookHistory from '../data/AccountBookHistory';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 

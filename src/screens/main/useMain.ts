@@ -1,6 +1,6 @@
-import AccountBookHistory from "../data/AccountBookHistory";
+import AccountBookHistory from "../../data/AccountBookHistory";
 import { useState } from "react";
-import { useRootNavigation } from "../navigations/RootNavigation";
+import { useRootNavigation } from "../../navigations/RootNavigation";
 
 const now = Date.now();
 const useMain = () => {

@@ -1,6 +1,6 @@
 import { View, StyleSheet } from 'react-native';
-import Header from '../designsystem/Header';
-import { useRootNavigation } from '../navigations/RootNavigation';
+import Header from '../../designsystem/Header';
+import { useRootNavigation } from '../../navigations/RootNavigation';
 
 const AddUpdateScreen = () => {
   const navigation = useRootNavigation();
