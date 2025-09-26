@@ -1,5 +1,8 @@
 import { useCallback, useMemo, useState } from 'react';
-import { useRootNavigation, useRootRoute } from '../../navigations/RootNavigation';
+import {
+  useRootNavigation,
+  useRootRoute,
+} from '../../navigations/RootNavigation';
 import AccountBookHistory from '../../data/AccountBookHistory';
 import { convertToDateString } from '../../utils/DateUtils';
 
@@ -23,20 +26,20 @@ const useAddUpdate = () => {
     type => {
       if (route.name === 'Update') return;
 
-      setItem(prevItem => ({ ...prevItem, type }));
+      setItem(prevState => ({ ...prevState, type }));
     },
     [route.name],
   );
 
   const onChangePrice = useCallback<(text: string) => void>(text => {
     if (text === '') {
-      setItem(prevItem => ({ ...prevItem, price: 0 }));
+      setItem(prevState => ({ ...prevState, price: 0 }));
       return;
     }
     if (isNaN(parseInt(text, 10))) return;
 
-    setItem(prevItem => ({
-      ...prevItem,
+    setItem(prevState => ({
+      ...prevState,
       price: parseInt(text, 10),
     }));
   }, []);
@@ -44,12 +47,17 @@ const useAddUpdate = () => {
   const priceValue = item.price === 0 ? '' : item.price.toString();
 
   const onChangeComment = useCallback<(text: string) => void>(text => {
-    setItem(prevItem => ({ ...prevItem, comment: text }));
+    setItem(prevState => ({ ...prevState, comment: text }));
   }, []);
 
   const onPressCalendar = useCallback(() => {
     console.log('onPressCalendar');
-  }, []);
+    navigation.push('CalendarSelect', {
+      onSelectDay: (date: number) => {
+        setItem(prevState => ({ ...prevState, date }));
+      },
+    });
+  }, [navigation]);
 
   const onPressSave = useCallback(() => {
     console.log('onPressSave');
@@ -112,7 +120,7 @@ const useAddUpdate = () => {
   }, [item.date]);
 
   const commentValue = item.comment;
-  
+
   return {
     item,
     setItem,
