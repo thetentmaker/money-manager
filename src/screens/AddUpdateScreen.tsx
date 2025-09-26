@@ -1,75 +1,37 @@
 import { View, StyleSheet, ScrollView } from 'react-native';
 import Header from '../designsystem/Header';
-import { useRootNavigation, useRootRoute } from '../navigations/RootNavigation';
 import useAddUpdate from '../hooks/useAddUpdate';
 import Button from '../designsystem/Button';
-import AccountBookHistory from '../data/AccountBookHistory';
 import Typography from '../designsystem/Typography';
-import { useCallback, useState } from 'react';
 import Spacer from '../designsystem/Spacer';
 import SingleLineInput from '../designsystem/SingleLineInput';
 import Icon from '../designsystem/Icons';
-import { convertToDateString } from '../utils/DateUtils';
 import MultiLineInput from '../designsystem/MultiLineInput';
 
 const AddUpdateScreen = () => {
-  const navigation = useRootNavigation<'Add' | 'Update'>();
-  const route = useRootRoute<'Add' | 'Update'>();
-  const {} = useAddUpdate();
-  const [item, setItem] = useState<AccountBookHistory>(
-    route.params?.item ??
-      ({
-        type: '사용',
-        price: 0,
-        comment: '',
-        date: 0,
-        createdAt: 0,
-        updatedAt: 0,
-        photoUrl: null,
-      } as AccountBookHistory),
-  );
-
-  const onPressType = useCallback<(type: AccountBookHistory['type']) => void>(
-    type => {
-      if (route.name === 'Update') return;
-
-      setItem(prevItem => ({ ...prevItem, type }));
-    },
-    [route.name],
-  );
-
-  const onChangePrice = useCallback<(text: string) => void>(text => {
-    if (text === '') {
-      setItem(prevItem => ({ ...prevItem, price: 0 }));
-      return;
-    }
-    if (isNaN(parseInt(text, 10))) return;
-
-    setItem(prevItem => ({
-      ...prevItem,
-      price: parseInt(text, 10),
-    }));
-  }, []);
-
-  const priceValue = item.price === 0 ? '' : item.price.toString();
-
-  const onChangeComment = useCallback<(text: string) => void>(text => {
-    setItem(prevItem => ({ ...prevItem, comment: text }));
-  }, []);
-
-  const onPressCalendar = useCallback(() => {
-    console.log('onPressCalendar');
-  }, []);
-
-  const onPressSave = useCallback(() => {
-    console.log('onPressSave');
-  }, []);
+  const {
+    onPressType,
+    onChangePrice,
+    priceValue,
+    commentValue,
+    onChangeComment,
+    onPressCalendar,
+    onPressSave,
+    onPressClose,
+    ctaButtonName,
+    usageColorStyle,
+    incomeColorStyle,
+    usageTextColor,
+    incomeTextColor,
+    calendarColorStyle,
+    calendarDisplayText,
+  } = useAddUpdate();
 
   return (
     <View style={styles.container}>
       <Header>
         <Header.Title>Add/Update screen</Header.Title>
-        <Header.Icon name="close" onPress={navigation.goBack} />
+        <Header.Icon name="close" onPress={onPressClose} />
       </Header>
 
       <ScrollView
@@ -79,16 +41,8 @@ const AddUpdateScreen = () => {
         <View style={styles.content}>
           <View style={styles.contentLeft}>
             <Button onPress={() => onPressType('사용')}>
-              <View
-                style={[
-                  item.type === '사용' ? styles.bgBlack : styles.bgWhite,
-                  styles.contentLeftButton,
-                ]}
-              >
-                <Typography
-                  variant="body1"
-                  color={item.type === '사용' ? 'white' : 'black'}
-                >
+              <View style={[usageColorStyle, styles.contentLeftButton]}>
+                <Typography variant="body1" color={usageTextColor}>
                   사용
                 </Typography>
               </View>
@@ -97,16 +51,8 @@ const AddUpdateScreen = () => {
 
           <View style={styles.contentRight}>
             <Button onPress={() => onPressType('수입')}>
-              <View
-                style={[
-                  item.type === '수입' ? styles.bgBlack : styles.bgWhite,
-                  styles.contentRightButton,
-                ]}
-              >
-                <Typography
-                  variant="body1"
-                  color={item.type === '수입' ? 'white' : 'black'}
-                >
+              <View style={[incomeColorStyle, styles.contentRightButton]}>
+                <Typography variant="body1" color={incomeTextColor}>
                   수입
                 </Typography>
               </View>
@@ -125,18 +71,10 @@ const AddUpdateScreen = () => {
             <Spacer size={10} />
             <Button onPress={onPressCalendar}>
               <View
-                style={[
-                  item.date === 0 ? styles.lightGray : styles.gray,
-                  styles.inputContainerPriceButton,
-                ]}
+                style={[styles.inputContainerPriceButton, calendarColorStyle]}
               >
-                <Typography
-                  variant="body1"
-                  color={'gray'}
-                >
-                  {item.date === 0
-                    ? '날짜를 선택하세요'
-                    : convertToDateString(item.date)}
+                <Typography variant={'body1'} color={'gray'}>
+                  {calendarDisplayText}
                 </Typography>
               </View>
             </Button>
@@ -154,15 +92,15 @@ const AddUpdateScreen = () => {
         <MultiLineInput
           placeholder="내용을 입력해 주세요."
           height={100}
-          value={item.comment}
+          value={commentValue}
           onChangeText={onChangeComment}
           onSubmitEditing={() => {}}
         />
         <Spacer size={64} />
         <Button onPress={onPressSave}>
           <View style={styles.saveButton}>
-            <Typography variant="body1" color={"white"}>
-              {route.name === 'Add' ? "저장하기" : "수정하기"}
+            <Typography variant={'body1'} color={'white'}>
+              {ctaButtonName}
             </Typography>
           </View>
         </Button>
@@ -235,17 +173,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 8,
   },
-  lightGray: {
-    borderColor: 'lightgray',
-  },
-  gray: {
-    borderColor: 'gray',
-  },
   saveButton: {
     paddingVertical: 12,
-    backgroundColor: "black",
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: 'black',
+    alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: 8,
   },
 });
