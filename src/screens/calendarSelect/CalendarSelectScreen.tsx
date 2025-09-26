@@ -5,6 +5,8 @@ import { Calendar } from 'react-native-calendars';
 import { convertToDateString } from '../../utils/DateUtils';
 
 const today = new Date();
+today.setHours(0, 0, 0, 0);
+today.setMinutes(0, 0, 0);
 const CalendarSelectScreen = () => {
   const { goBack, onDayPress } = useCalendarSelect();
 

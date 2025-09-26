@@ -5,8 +5,9 @@ import {
 } from '../../navigations/RootNavigation';
 import AccountBookHistory from '../../data/AccountBookHistory';
 import { convertToDateString } from '../../utils/DateUtils';
-
+import useAccountBookHistoryDb from '../../hooks/useAccountBookHistoryDb';
 const useAddUpdate = () => {
+  const { insertItem } = useAccountBookHistoryDb();
   const navigation = useRootNavigation<'Add' | 'Update'>();
   const route = useRootRoute<'Add' | 'Update'>();
   const [item, setItem] = useState<AccountBookHistory>(
@@ -27,8 +28,10 @@ const useAddUpdate = () => {
       if (route.name === 'Update') return;
 
       setItem(prevState => ({ ...prevState, type }));
+
+      console.log('onPressType item:', item);
     },
-    [route.name],
+    [route.name, item],
   );
 
   const onChangePrice = useCallback<(text: string) => void>(text => {
@@ -60,8 +63,11 @@ const useAddUpdate = () => {
   }, [navigation]);
 
   const onPressSave = useCallback(() => {
-    console.log('onPressSave');
-  }, []);
+    console.log('onPressSave item:', item);
+    if (route.name === 'Add') {
+      insertItem(item);
+    }
+  }, [insertItem, item, route.name]);
 
   const onPressClose = useCallback(() => {
     navigation.goBack();

@@ -1,6 +1,6 @@
 type AccountBookHistory = {
   id: number;
-  type: "사용" | "수입";
+  type: string;
   price: number;
   comment: string;
   date: number;

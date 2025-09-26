@@ -9,6 +9,7 @@ import Icon from '../../designsystem/Icons';
 import MultiLineInput from '../../designsystem/MultiLineInput';
 
 const AddUpdateScreen = () => {
+
   const {
     onPressType,
     onChangePrice,
