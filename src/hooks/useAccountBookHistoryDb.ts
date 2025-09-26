@@ -16,16 +16,18 @@ const useAccountBookHistoryDb = () => {
   };
 
   const openDB = useCallback<() => Promise<SQLiteDatabase>>(async () => {
-    return await SQLite.openDatabase(
+    return SQLite.openDatabase(
       {
         name: 'account_history',
         location: 'default',
+        createFromLocation: 1,
       },
       (db: SQLiteDatabase) => {
         console.log('DB opened', db);
       },
-      err => {
+      (err: any) => {
         console.error('DB opened error:', err);
+        
         throw err;
       },
     );
@@ -77,19 +79,8 @@ const useAccountBookHistoryDb = () => {
         console.log('SQL params:', params);
 
         const result = await db.executeSql(
-          `
-          INSERT INTO account_history (type, price, comment, date, photo_url, created_at, updated_at) 
-          VALUES ( 
-            "${item.type}", 
-            ${item.price}, 
-            "${item.comment}", 
-            ${item.date}, 
-            "${item.photoUrl}", 
-            ${item.createdAt}, 
-            ${item.updatedAt} 
-          )
-          `,
-          [],
+          'INSERT INTO account_history (type, price, comment, date, photo_url, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+          params,
         );
         console.log('insertItem result:', result);
         const insertId = result[0]?.insertId;

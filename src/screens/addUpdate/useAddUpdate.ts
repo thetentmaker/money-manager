@@ -6,6 +6,7 @@ import {
 import AccountBookHistory from '../../data/AccountBookHistory';
 import { convertToDateString } from '../../utils/DateUtils';
 import useAccountBookHistoryDb from '../../hooks/useAccountBookHistoryDb';
+import { Alert } from 'react-native';
 const useAddUpdate = () => {
   const { insertItem } = useAccountBookHistoryDb();
   const navigation = useRootNavigation<'Add' | 'Update'>();
@@ -65,9 +66,14 @@ const useAddUpdate = () => {
   const onPressSave = useCallback(() => {
     console.log('onPressSave item:', item);
     if (route.name === 'Add') {
-      insertItem(item);
+      insertItem(item).then(() => {
+        navigation.goBack();
+      }).catch((error) => {
+        console.error('insertItem error:', error);
+        Alert.alert('저장 실패', '저장 실패하였습니다.');
+      });
     }
-  }, [insertItem, item, route.name]);
+  }, [insertItem, item, route.name, navigation]);
 
   const onPressClose = useCallback(() => {
     navigation.goBack();
