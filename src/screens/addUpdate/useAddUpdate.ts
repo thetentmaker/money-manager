@@ -68,7 +68,6 @@ const useAddUpdate = () => {
           navigation.goBack();
         })
         .catch(error => {
-          error.message;
           Alert.alert('저장 실패', error.message, [
             {
               text: '확인',
