@@ -1,10 +1,20 @@
 import AccountBookHistory from "../../data/AccountBookHistory";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useRootNavigation } from "../../navigations/RootNavigation";
+import { useFocusEffect } from "@react-navigation/native";
+import useAccountBookHistoryDb from "../../hooks/useAccountBookHistoryDb";
 
 const now = Date.now();
 const useMain = () => {
   const navigation = useRootNavigation();
+  const { getList } = useAccountBookHistoryDb();
+
+  useFocusEffect(
+    useCallback(() => {
+      console.log('useFocusEffect getList');
+      getList();
+    }, [getList]),
+  );
   const [list] = useState<AccountBookHistory[]>([
     {
       id: 0,
@@ -41,6 +51,10 @@ const useMain = () => {
     list,
     onPressItem,
     onPressAdd,
+    onPressClose: () => {
+      console.log('onPressClose TEST');
+      getList();
+    },
   };
 };
 

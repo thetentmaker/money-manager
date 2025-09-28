@@ -5,10 +5,22 @@ import useMain from './useMain';
 import Button from '../../designsystem/Button';
 import Icon from '../../designsystem/Icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
+import useAccountBookHistoryDb from '../../hooks/useAccountBookHistoryDb';
 
 const MainScreen = () => {
   const safeAreaInsets = useSafeAreaInsets();
   const { list, onPressItem, onPressAdd } = useMain();
+
+  const {getList} = useAccountBookHistoryDb();
+
+  useFocusEffect(
+    useCallback(() => {
+      console.log('useFocusEffect getList');
+      getList();
+    }, [getList]),
+  );
 
   return (
     <View style={styles.container}>
