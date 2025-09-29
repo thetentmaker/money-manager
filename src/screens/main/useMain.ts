@@ -10,8 +10,7 @@ const useMain = () => {
   const [list, setList] = useState<AccountBookHistory[]>([]);
 
   const fetchList = useCallback(async () => {
-    const list = await getList();
-    setList(list);
+    setList(await getList());
   }, [getList]);
 
   useFocusEffect(

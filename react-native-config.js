@@ -2,7 +2,7 @@ module.exports = {
   dependencies: {
     'react-native-vector-icons': {
       platforms: {
-        ios: null,
+        sourceDir: '../node_modules/react-native-sqlite-storage/platforms/ios',
       },
     },
     'react-native-sqlite-storage': {
