@@ -8,7 +8,7 @@ import { convertToDateString } from '../../utils/DateUtils';
 import useAccountBookHistoryDb from '../../hooks/useAccountBookHistoryDb';
 import { Alert } from 'react-native';
 const useAddUpdate = () => {
-  const { insertItem } = useAccountBookHistoryDb();
+  const { insertItem, updateItem } = useAccountBookHistoryDb();
   const navigation = useRootNavigation<'Add' | 'Update'>();
   const route = useRootRoute<'Add' | 'Update'>();
   const [item, setItem] = useState<AccountBookHistory>(
@@ -75,8 +75,22 @@ const useAddUpdate = () => {
             },
           ]);
         });
+    } else if (route.name === 'Update') {
+      updateItem(item)
+        .then(() => {
+          route.params?.onChangeData(item);
+          navigation.goBack();
+        })
+        .catch(error => {
+          Alert.alert('수정 실패', error.message, [
+            {
+              text: '확인',
+              onPress: () => {},
+            },
+          ]);
+        });
     }
-  }, [insertItem, item, route.name, navigation]);
+  }, [insertItem, item, route.name, navigation, updateItem, route.params]);
 
   const onPressClose = useCallback(() => {
     navigation.goBack();

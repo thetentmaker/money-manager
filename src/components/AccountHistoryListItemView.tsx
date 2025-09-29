@@ -17,7 +17,7 @@ const AccountHistoryListItemView = ({
   item,
   onPressItem,
 }: AccountHistoryListItemViewProps) => {
-  const { iconName, iconColor, displayCreateAt } =
+  const { iconName, iconColor, displayCreateAt, displayContent, photoUrl } =
     useAccountHistoryListItemView(item);
 
   return (
@@ -25,15 +25,15 @@ const AccountHistoryListItemView = ({
       <View style={styles.container}>
         <Icon name={iconName} size={24} color={iconColor} />
         <View style={styles.content}>
-          <Typography variant="body1">{item.comment}</Typography>
+          <Typography variant="body1">{displayContent}</Typography>
           <Spacer size={4} />
           <Typography variant="body2">{displayCreateAt}</Typography>
         </View>
-        {item.photoUrl && (
+        {photoUrl && (
           <>
             <Spacer size={12} horizontal />
             <RemoteImage
-              uri={item.photoUrl}
+              uri={photoUrl}
               width={100}
               height={100}
               style={styles.photo}
@@ -53,10 +53,20 @@ const useAccountHistoryListItemView = (item: AccountBookHistory) => {
     [item.createdAt],
   );
 
+  const displayContent = useMemo(() => {
+    return item.comment + ' | ' + item.price + '원';
+  }, [item.comment, item.price]);
+
+  const photoUrl = useMemo(() => {
+    return item.photoUrl;
+  }, [item.photoUrl]);
+
   return {
     iconName,
     iconColor,
     displayCreateAt,
+    displayContent,
+    photoUrl,
   };
 };
 

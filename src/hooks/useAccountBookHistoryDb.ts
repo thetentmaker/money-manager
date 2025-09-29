@@ -192,21 +192,24 @@ const useAccountBookHistoryDb = () => {
     async (item: AccountBookHistory): Promise<AccountBookHistory> => {
       console.log('=== updateItem 시작 ===');
       try {
+        if (typeof item.id === 'undefined') {
+          throw new Error('id is undefined');
+        }
         const db = await openDB();
         const now = Date.now();
-        
+
         const result = await new Promise<ResultSet>((resolve, reject) => {
           db.transaction(transaction => {
             transaction.executeSql(
-              'UPDATE account_history SET type = ?, price = ?, comment = ?, date = ?, created_at = ?, updated_at = ?, photo_url = ? WHERE id = ?',
+              'UPDATE account_history SET type = ?, price = ?, comment = ?, date = ?, photo_url = ?, created_at = ?, updated_at = ? WHERE id = ?',
               [
                 item.type,
                 item.price,
                 item.comment,
                 item.date,
-                now,
-                now,
                 item.photoUrl,
+                now,
+                now,
                 item.id,
               ],
               (_, res) => {
@@ -216,11 +219,11 @@ const useAccountBookHistoryDb = () => {
               (_, err) => {
                 console.error('updateItem Transaction executeSql 실패:', err);
                 reject(err);
-              }
+              },
             );
           });
         });
-        
+
         console.log('updateItem result:', result);
         return { ...item, id: result.insertId || item.id };
       } catch (error) {
@@ -231,12 +234,14 @@ const useAccountBookHistoryDb = () => {
     [openDB],
   );
 
-  const getList = useCallback<() => Promise<AccountBookHistory[]>>( async (): Promise<AccountBookHistory[]> => {
+  const getList = useCallback<
+    () => Promise<AccountBookHistory[]>
+  >(async (): Promise<AccountBookHistory[]> => {
     console.log('=== getList 시작 ===');
     try {
       const db = await openDB();
       console.log('getList db 객체:', db);
-      
+
       // 트랜잭션 방식으로 변경
       const result = await new Promise<ResultSet>((resolve, reject) => {
         db.transaction(transaction => {
@@ -250,13 +255,13 @@ const useAccountBookHistoryDb = () => {
             (_, err) => {
               console.error('getList Transaction executeSql 실패:', err);
               reject(err);
-            }
+            },
           );
         });
       });
-      
+
       console.log('getList result:', result);
-      
+
       // SQLite 결과를 AccountBookHistory[] 타입으로 변환
       const rawRows = result.rows.raw();
       const accountHistoryList: AccountBookHistory[] = rawRows
@@ -271,7 +276,7 @@ const useAccountBookHistoryDb = () => {
           updatedAt: row.updated_at,
           photoUrl: row.photo_url,
         }));
-      
+
       console.log('변환된 accountHistoryList:', accountHistoryList);
       return accountHistoryList;
     } catch (error) {
