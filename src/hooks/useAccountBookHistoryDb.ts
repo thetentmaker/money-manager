@@ -296,10 +296,88 @@ const useAccountBookHistoryDb = () => {
     }
   }, [openDB]);
 
+  const getMonthlyAverage = useCallback<
+    () => Promise<{ month: number; data: number[] }[]>
+  >(async (): Promise<{ month: number; data: number[] }[]> => {
+    try {
+      const now = new Date();
+      const currentMonthStart = new Date();
+      currentMonthStart.setDate(1);
+
+      const prevMonthList = [2, 1].map(monthDiff => {
+        const date = new Date();
+        date.setMonth(now.getMonth() - monthDiff);
+        date.setDate(1);
+
+        return date.getTime();
+      });
+
+      const queryMonth = prevMonthList.concat(
+        currentMonthStart.getTime(),
+        now.getTime(),
+      );
+      const db = await openDB();
+
+      const monthly: { month: number; data: number[] }[] = [];
+
+      const querySum = (
+        start: number,
+        end: number,
+        historyType: '사용' | '수입',
+      ): Promise<number> =>
+        new Promise((resolve, reject) => {
+          db.readTransaction(tx => {
+            tx.executeSql(
+              `
+              SELECT COALESCE(SUM(price), 0) AS sum
+              FROM account_history
+              WHERE date >= ? AND date < ? AND type = ?
+              `,
+              [start, end, historyType],
+              (_, res) => {
+                const rowCount = res?.rows?.length ?? 0;
+                const value = rowCount > 0 ? res.rows.item(0)?.sum ?? 0 : 0;
+                resolve(Number(value) || 0);
+              },
+              (_t, err) => {
+                reject(err);
+                return false;
+              },
+            );
+          });
+        });
+
+      for (let index = 0; index < queryMonth.length - 1; index++) {
+        const start = queryMonth[index];
+        const end = queryMonth[index + 1];
+
+        const usedPrice = await querySum(start, end, '사용');
+        const savedPrice = await querySum(start, end, '수입');
+
+        monthly.push({
+          month: new Date(start).getMonth(),
+          data: [usedPrice, savedPrice],
+        });
+      }
+      return monthly;
+    } catch (error) {
+      console.error('getMonthlyAverage 에러:', error);
+      // 상세 로그 출력
+      console.error('getMonthlyAverage 에러 상세:', error);
+      console.error('getMonthlyAverage 에러 타입:', typeof error);
+      console.error('getMonthlyAverage 에러 객체:', error);
+      console.error('getMonthlyAverage 에러 메시지:', error instanceof Error ? error.message : String(error));
+      console.error('getMonthlyAverage 에러 스택:', error instanceof Error ? error.stack : 'No stack trace');
+      console.error('getMonthlyAverage 에러가 언캐치됨:', error);
+      console.error('getMonthlyAverage 에러 상세:', error);
+      throw error;
+    }
+  }, [openDB]);
   return {
     insertItem,
     updateItem,
     getList,
+    getMonthlyAverage,
   };
 };
 

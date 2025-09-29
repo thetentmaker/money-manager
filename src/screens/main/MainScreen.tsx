@@ -5,10 +5,12 @@ import useMain from './useMain';
 import Button from '../../designsystem/Button';
 import Icon from '../../designsystem/Icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Typography from '../../designsystem/Typography';
+import Spacer from '../../designsystem/Spacer';
 
 const MainScreen = () => {
   const safeAreaInsets = useSafeAreaInsets();
-  const { list, onPressItem, onPressAdd } = useMain();
+  const { list, onPressItem, onPressAdd, totalUsage, totalIncome, onPressMonthly } = useMain();
 
   return (
     <View style={styles.container}>
@@ -18,6 +20,32 @@ const MainScreen = () => {
       </Header>
       <FlatList
         data={list}
+        ListHeaderComponent={
+          <>
+            <Button onPress={onPressMonthly}>
+              <View style={styles.monthlyButtonContainer}>
+                <View style={styles.monthlyButton}>
+                  <Typography variant="body1" color="gray">
+                    이번달 총 사용 금액
+                  </Typography>
+                  <Spacer size={12} />
+                  <Typography variant="h1" color="black">
+                    {totalUsage}원
+                  </Typography>
+                </View>
+                <View style={styles.monthlyButton}>
+                  <Typography variant="body1" color="gray">
+                    이번달 총 수입 금액
+                  </Typography>
+                  <Spacer size={12} />
+                  <Typography variant="h1" color="black">
+                    {totalIncome}원
+                  </Typography>
+                </View>
+              </View>
+            </Button>
+          </>
+        }
         renderItem={({ item }) => (
           <AccountHistoryListItemView item={item} onPressItem={onPressItem} />
         )}
@@ -35,6 +63,9 @@ const MainScreen = () => {
 export default MainScreen;
 
 const styles = StyleSheet.create({
+  header: {
+    padding: 16,
+  },
   container: {
     flex: 1,
   },
@@ -48,5 +79,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'red',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  monthlyButton: {
+    alignItems: 'center',
+  },
+  monthlyButtonContainer: {
+    justifyContent: 'space-between',
   },
 });
