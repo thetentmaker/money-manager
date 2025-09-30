@@ -24,7 +24,6 @@ const MainScreen = () => {
     <View style={styles.container}>
       <Header>
         <Header.Title>MAIN</Header.Title>
-        <Header.Icon name="close" onPress={() => {}} />
       </Header>
       <FlatList
         data={list}

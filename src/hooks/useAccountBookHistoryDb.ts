@@ -90,7 +90,7 @@ const useAccountBookHistoryDb = () => {
           updatedAt,
         });
 
-        const db = await openDB();
+        const db: SQLiteDatabase = await openDB();
         console.log('db 객체:', db);
         console.log('db 타입:', typeof db);
         console.log('db 구조:', Object.keys(db || {}));
@@ -296,36 +296,69 @@ const useAccountBookHistoryDb = () => {
     }
   }, [openDB]);
 
+  interface MonthlyAverage {
+    month: number;
+    data: number[];
+  }
+  /**
+   * 차트용 월별 수입/지출 평균 데이터를 가져오는 함수
+   *
+   * @returns Promise<{ month: number; data: number[] }[]>
+   * - month: 월 번호 (0~11, 0=1월, 11=12월)
+   * - data: [지출금액, 수입금액] 배열
+   *
+   * @example
+   * // 현재가 2024년 3월 15일이라면
+   * // 반환값: [
+   * //   { month: 0, data: [100000, 200000] }, // 1월: 지출 10만원, 수입 20만원
+   * //   { month: 1, data: [150000, 180000] }, // 2월: 지출 15만원, 수입 18만원
+   * //   { month: 2, data: [80000, 220000] }   // 3월: 지출 8만원, 수입 22만원 (3월 1일~15일까지)
+   * // ]
+   */
   const getMonthlyAverage = useCallback<
-    () => Promise<{ month: number; data: number[] }[]>
-  >(async (): Promise<{ month: number; data: number[] }[]> => {
+    () => Promise<MonthlyAverage[]>
+  >(async (): Promise<MonthlyAverage[]> => {
     try {
-      const now = new Date();
-      const currentMonthStart = new Date();
-      currentMonthStart.setDate(1);
+      // === 1단계: 날짜 범위 계산 ===
+      const now = new Date(); // 현재 시간
+      const currentMonthStart = new Date(); // 이번 달 1일 계산용
+      currentMonthStart.setDate(1); // 이번 달 1일로 설정
 
+      // 이전 2개월(2개월 전, 1개월 전)의 1일 타임스탬프 생성
+      // [2, 1] → 2개월 전, 1개월 전 순서로 처리
       const prevMonthList = [2, 1].map(monthDiff => {
         const date = new Date();
-        date.setMonth(now.getMonth() - monthDiff);
-        date.setDate(1);
+        date.setMonth(now.getMonth() - monthDiff); // 현재 월에서 차감
+        date.setDate(1); // 해당 월의 1일로 설정
 
-        return date.getTime();
+        return date.getTime(); // 타임스탬프로 변환
       });
 
+      // 쿼리할 날짜 배열 생성: [2개월전 1일, 1개월전 1일, 이번달 1일, 현재시간]
+      // 예: 현재가 2024-03-15라면 → [2024-01-01, 2024-02-01, 2024-03-01, 2024-03-15]
       const queryMonth = prevMonthList.concat(
-        currentMonthStart.getTime(),
-        now.getTime(),
+        currentMonthStart.getTime(), // 이번 달 1일
+        now.getTime(), // 현재 시간
       );
+
       const db = await openDB();
+      const monthly: MonthlyAverage[] = []; // 결과 저장 배열
 
-      const monthly: { month: number; data: number[] }[] = [];
-
+      // === 2단계: 특정 기간의 수입/지출 합계를 구하는 내부 함수 ===
+      /**
+       * 지정된 기간과 타입의 거래 합계를 계산
+       * @param start 시작 날짜 (타임스탬프)
+       * @param end 종료 날짜 (타임스탬프)
+       * @param historyType '사용' 또는 '수입'
+       * @returns 해당 기간의 거래 합계
+       */
       const querySum = (
         start: number,
         end: number,
         historyType: '사용' | '수입',
       ): Promise<number> =>
         new Promise((resolve, reject) => {
+          // readTransaction: 읽기 전용 트랜잭션 (성능 최적화)
           db.readTransaction(tx => {
             tx.executeSql(
               `
@@ -333,13 +366,15 @@ const useAccountBookHistoryDb = () => {
               FROM account_history
               WHERE date >= ? AND date < ? AND type = ?
               `,
-              [start, end, historyType],
+              [start, end, historyType], // SQL 파라미터
               (_, res) => {
+                // 쿼리 성공 시
                 const rowCount = res?.rows?.length ?? 0;
                 const value = rowCount > 0 ? res.rows.item(0)?.sum ?? 0 : 0;
-                resolve(Number(value) || 0);
+                resolve(Number(value) || 0); // 숫자로 변환 후 반환
               },
               (_t, err) => {
+                // 쿼리 실패 시
                 reject(err);
                 return false;
               },
@@ -347,18 +382,27 @@ const useAccountBookHistoryDb = () => {
           });
         });
 
+      // === 3단계: 각 월별 데이터 수집 ===
+      // queryMonth 배열의 인접한 두 날짜를 사용해 월별 구간 생성
+      // 예: [2024-01-01, 2024-02-01, 2024-03-01, 2024-03-15]
+      //     → 구간1: 2024-01-01 ~ 2024-02-01 (1월)
+      //     → 구간2: 2024-02-01 ~ 2024-03-01 (2월)
+      //     → 구간3: 2024-03-01 ~ 2024-03-15 (3월)
       for (let index = 0; index < queryMonth.length - 1; index++) {
-        const start = queryMonth[index];
-        const end = queryMonth[index + 1];
+        const start = queryMonth[index]; // 해당 월 시작 시간
+        const end = queryMonth[index + 1]; // 다음 구간 시작 시간 (= 해당 월 종료 시간)
 
-        const usedPrice = await querySum(start, end, '사용');
-        const savedPrice = await querySum(start, end, '수입');
+        // 해당 월의 지출과 수입 합계를 각각 계산
+        const usedPrice = await querySum(start, end, '사용'); // 지출 합계
+        const savedPrice = await querySum(start, end, '수입'); // 수입 합계
 
+        // 결과 배열에 추가
         monthly.push({
-          month: new Date(start).getMonth(),
-          data: [usedPrice, savedPrice],
+          month: new Date(start).getMonth(), // 월 번호 (0~11)
+          data: [usedPrice, savedPrice], // [지출, 수입] 순서
         });
       }
+
       return monthly;
     } catch (error) {
       console.error('getMonthlyAverage 에러:', error);
@@ -366,8 +410,14 @@ const useAccountBookHistoryDb = () => {
       console.error('getMonthlyAverage 에러 상세:', error);
       console.error('getMonthlyAverage 에러 타입:', typeof error);
       console.error('getMonthlyAverage 에러 객체:', error);
-      console.error('getMonthlyAverage 에러 메시지:', error instanceof Error ? error.message : String(error));
-      console.error('getMonthlyAverage 에러 스택:', error instanceof Error ? error.stack : 'No stack trace');
+      console.error(
+        'getMonthlyAverage 에러 메시지:',
+        error instanceof Error ? error.message : String(error),
+      );
+      console.error(
+        'getMonthlyAverage 에러 스택:',
+        error instanceof Error ? error.stack : 'No stack trace',
+      );
       console.error('getMonthlyAverage 에러가 언캐치됨:', error);
       console.error('getMonthlyAverage 에러 상세:', error);
       throw error;
