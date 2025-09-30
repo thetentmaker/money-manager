@@ -2,6 +2,7 @@ import { View, StyleSheet } from 'react-native';
 import Header from '../../designsystem/Header';
 import useMonthly from './useMonthly';
 import StackBarChart from '../main/components/StackBarChart';
+import { useEffect } from 'react';
 
 const MonthlyScreen = () => {
   const {
@@ -12,6 +13,10 @@ const MonthlyScreen = () => {
     chartSize,
     onPressClose,
   } = useMonthly();
+
+  useEffect(() => {
+    console.log('chartLabels', chartLabels);
+  }, [chartLabels]);
   return (
     <View style={styles.container}>
       <Header>

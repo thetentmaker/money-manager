@@ -67,7 +67,7 @@ const useMain = () => {
     onPressAdd,
     onPressClose: () => navigation.goBack(),
     chartSize,
-    chartLabels: average.map(item => `${item.month.toString()}월`),
+    chartLabels: average.map(item => `${(item.month).toString()}월`),
     chartData: average.map(item => item.data),
     chartBarColors: ['#dfe4ea', '#a4b0be'],
     chartLegend: ['사용', '수입'],

@@ -7,10 +7,18 @@ import Icon from '../../designsystem/Icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Typography from '../../designsystem/Typography';
 import Spacer from '../../designsystem/Spacer';
+import Divider from '../../designsystem/Divider';
 
 const MainScreen = () => {
   const safeAreaInsets = useSafeAreaInsets();
-  const { list, onPressItem, onPressAdd, totalUsage, totalIncome, onPressMonthly } = useMain();
+  const {
+    list,
+    onPressItem,
+    onPressAdd,
+    totalUsage,
+    totalIncome,
+    onPressMonthly,
+  } = useMain();
 
   return (
     <View style={styles.container}>
@@ -42,13 +50,23 @@ const MainScreen = () => {
                     {totalIncome}원
                   </Typography>
                 </View>
+                <Divider thickness={10} />
               </View>
             </Button>
           </>
         }
-        renderItem={({ item }) => (
-          <AccountHistoryListItemView item={item} onPressItem={onPressItem} />
-        )}
+        renderItem={({ item }) => {
+          try {
+            return (
+              <AccountHistoryListItemView
+                item={item}
+                onPressItem={onPressItem}
+              />
+            );
+          } catch (error) {
+            return null;
+          }
+        }}
       />
       <Button
         style={[{ bottom: safeAreaInsets.bottom + 12 }, styles.floatingButton]}
