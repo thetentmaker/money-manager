@@ -7,22 +7,24 @@ import AccountBookHistory from '../../data/AccountBookHistory';
 import { convertToDateString } from '../../utils/DateUtils';
 import useAccountBookHistoryDb from '../../hooks/useAccountBookHistoryDb';
 import { Alert } from 'react-native';
+
+const DEFAULT_ITEM: Omit<AccountBookHistory, 'id'> = {
+  type: '사용',
+  price: 0,
+  comment: '',
+  date: 0,
+  createdAt: 0,
+  updatedAt: 0,
+  photoUrl: null,
+};
+
 const useAddUpdate = () => {
   const { insertItem, updateItem } = useAccountBookHistoryDb();
   const navigation = useRootNavigation<'Add' | 'Update'>();
   const route = useRootRoute<'Add' | 'Update'>();
-  const [item, setItem] = useState<AccountBookHistory>(
-    route.params?.item ??
-      ({
-        type: '사용',
-        price: 0,
-        comment: '',
-        date: 0,
-        createdAt: 0,
-        updatedAt: 0,
-        photoUrl: null,
-      } as AccountBookHistory),
-  );
+  const [item, setItem] = useState<Omit<AccountBookHistory, 'id'>>(() => {
+    return route.params?.item ?? { ...DEFAULT_ITEM };
+  });
 
   const onPressType = useCallback<(type: AccountBookHistory['type']) => void>(
     type => {
