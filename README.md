@@ -492,3 +492,165 @@ const useMain = () => {
 - 요구사항을 다 구현하지 않음(누락)
     - 삭제 기능
     - 월별 사용 데이터 하단 월별 금액
+
+<br>
+<br>
+<br>
+
+# 추가 학습
+## useFocusEffect 와 useCallback 를 함께 사용하는 이유?
+
+`useFocusEffect`는 의존성 배열을 받지 않고 콜백 함수 자체가 변경되었는지를 비교합니다. `useCallback`으로 감싸지 않으면 매 렌더링마다 새로운 함수가 생성되어 불필요한 재실행이 발생합니다.
+
+```ts
+const useMain = () => {
+  const {getList, getMonthlyAverage} = useAccountBookHistoryDb();
+  const [list, setList] = useState<AccountBookHistory[]>([]);
+
+  // fetchList를 useCallback으로 메모이제이션
+  const fetchList = useCallback(async () => {
+    setList(await getList());
+    const monthlyAverage = await getMonthlyAverage();
+    setAverage(monthlyAverage);
+  }, [getList, getMonthlyAverage]);
+
+  //매 렌더링마다 새로운 함수가 생성되어 fetchList가 재실행됨
+  useFocusEffect(() => {
+    fetchList();
+  });
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchList();
+    }, [fetchList])
+  );
+};
+```
+- useCallback() 을 사용하지 않으면 나타나는 현상
+```
+[1단계] 컴포넌트 렌더링
+    ↓
+[2단계] () => { fetchList(); } 함수가 생성
+    ↓
+[3단계] useFocusEffect가 "콜백 함수가 바뀌었네?" 감지
+    ↓
+[4단계] useFocusEffect가 새 콜백 실행
+    ↓
+[5단계] fetchList() 실행 → setList(), setAverage() 호출
+    ↓
+[6단계] 상태 변경 → 컴포넌트 리렌더링
+    ↓
+[다시 1단계로...] 무한 루프!
+
+```
+- useCallback() 을 사용했을 때
+```
+[1단계] 컴포넌트 렌더링 
+  ↓
+[2단계] useFocusEffect의 useCallback 실행 
+  ↓
+[3단계] fetchList 실행 
+  ↓
+[4단계] 상태 변경으로 렌더링 
+  ↓
+[5단계] fetchList가 바뀌지 않았으므로 useCallback이 실행되지 않음 
+```
+
+
+
+## useState의 초기값 설정을 useState 객체 생성시에 하면 안되는 이유?
+
+복잡한 객체 리터럴을 직접 넣으면 매 렌더링마다 새로운 객체가 생성되어 불필요한 메모리 할당이 발생합니다. 하지만 이는 성능에 큰 영향을 주지 않으며, 주로 가독성과 유지보수를 위해 사용합니다.
+
+```ts
+const useAddUpdate = () => {
+  const route = useRootRoute<'Add' | 'Update'>();
+
+  // ⚠️ 객체 리터럴이 매 렌더링마다 생성됨 (하지만 실제 성능 영향은 미미함)
+  const [item, setItem] = useState<AccountBookHistory>(
+    route.params?.item ?? {
+      type: '사용',
+      price: 0,
+      comment: '',
+      date: 0,
+      createdAt: 0,
+      updatedAt: 0,
+      photoUrl: null,
+    }
+  );
+
+  // ✅ 더 나은 방법: 기본값을 상수로 분리
+  const DEFAULT_ITEM: Omit<AccountBookHistory, 'id'> = {
+    type: '사용',
+    price: 0,
+    comment: '',
+    date: 0,
+    createdAt: 0,
+    updatedAt: 0,
+    photoUrl: null,
+  };
+
+  const [item2, setItem2] = useState<AccountBookHistory>(
+    route.params?.item ?? DEFAULT_ITEM
+  );
+};
+
+// 📝 참고: 함수 호출이나 무거운 연산은 lazy initialization 사용 필요
+const [data, setData] = useState(() => heavyComputation());
+```
+
+## type 과 interface의 차이
+
+### 공통점
+- 객체 타입 정의
+- extends로 확장 가능
+
+### 차이점
+| 특징 | interface | type |
+|------|-----------|------|
+| 확장 방법 | extends | & (intersection) |
+| 선언 병합 | 가능 (같은 이름으로 여러 번 선언 시 자동 병합) | 불가능 |
+| Union/Intersection | 불가능 | 가능 |
+| Primitive 타입 | 불가능 | 가능 |
+
+```ts
+// interface: 선언 병합
+interface User {
+  id: number;
+}
+interface User {
+  name: string;
+}
+// 자동으로 병합됨: { id: number; name: string; }
+
+// type: Union, Intersection 사용 가능
+type Status = 'loading' | 'success' | 'error';
+type Response = SuccessResponse | ErrorResponse;
+type Combined = TypeA & TypeB; 
+
+// 일반적으로 객체 타입은 interface, 나머지는 type 사용 권장
+```
+
+## 객체 타입의 useState에 set 할 때 setItem(prevState =>({...prevState, type})) 과 setItem({...prevState, type})의 차이점
+
+함수형 업데이트 vs 직접 업데이트의 차이입니다.
+
+```ts
+// ❌ 직접 업데이트: 클로저로 인해 stale state 문제 발생 가능
+const onClick = () => {
+  setItem({ ...item, type: '수입' });
+  // item이 이전 렌더링의 값을 참조할 수 있음
+};
+
+// ✅ 함수형 업데이트: 항상 최신 state 보장
+const onClick = () => {
+  setItem(prevState => ({ ...prevState, type: '수입' }));
+  // prevState는 React가 보장하는 최신 값
+};
+
+// 특히 비동기 작업이나 여러 번의 setState가 발생할 때 중요
+setTimeout(() => {
+  setItem({ ...item, count: item.count + 1 }); // ❌ stale state
+  setItem(prev => ({ ...prev, count: prev.count + 1 })); // ✅ 안전
+}, 1000);
+```

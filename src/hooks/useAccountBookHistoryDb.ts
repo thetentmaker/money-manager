@@ -194,6 +194,7 @@ const useAccountBookHistoryDb = () => {
     () => Promise<AccountBookHistory[]>
   >(async (): Promise<AccountBookHistory[]> => {
     try {
+      console.log(' getList');
       const db = await openDB();
 
       // 트랜잭션 방식으로 변경
@@ -268,6 +269,7 @@ const useAccountBookHistoryDb = () => {
     () => Promise<MonthlyAverage[]>
   >(async (): Promise<MonthlyAverage[]> => {
     try {
+      console.log(' getMonthlyAverage');
       // === 1단계: 날짜 범위 계산 ===
       const now = new Date(); // 현재 시간
       const currentMonthStart = new Date(); // 이번 달 1일 계산용

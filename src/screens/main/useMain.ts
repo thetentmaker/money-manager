@@ -1,9 +1,9 @@
 import AccountBookHistory from '../../data/AccountBookHistory';
 import { useCallback, useMemo, useState } from 'react';
 import { useRootNavigation } from '../../navigations/RootNavigation';
-import { useFocusEffect } from '@react-navigation/native';
 import useAccountBookHistoryDb from '../../hooks/useAccountBookHistoryDb';
 import { Dimensions } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 
 const useMain = () => {
   const navigation = useRootNavigation();
@@ -14,7 +14,9 @@ const useMain = () => {
   const [average, setAverage] = useState<{ month: number; data: number[] }[]>(
     [],
   );
+  
   const fetchList = useCallback(async () => {
+    console.log(' fetchList');
     setList(await getList());
     const monthlyAverage = await getMonthlyAverage();
     setAverage(monthlyAverage);
@@ -67,7 +69,7 @@ const useMain = () => {
     onPressAdd,
     onPressClose: () => navigation.goBack(),
     chartSize,
-    chartLabels: average.map(item => `${(item.month).toString()}월`),
+    chartLabels: average.map(item => `${item.month.toString()}월`),
     chartData: average.map(item => item.data),
     chartBarColors: ['#dfe4ea', '#a4b0be'],
     chartLegend: ['사용', '수입'],

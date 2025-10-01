@@ -8,6 +8,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Typography from '../../designsystem/Typography';
 import Spacer from '../../designsystem/Spacer';
 import Divider from '../../designsystem/Divider';
+import { useCallback, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 
 const MainScreen = () => {
   const safeAreaInsets = useSafeAreaInsets();
@@ -20,8 +22,28 @@ const MainScreen = () => {
     onPressMonthly,
   } = useMain();
 
+  const [count, setCount] = useState(0);
+  
+  // useCallback 없음
+  useFocusEffect(() => {
+    console.log(`useCallback 없음: ${count}`);
+  });
+  
+  // useCallback 있음
+  useFocusEffect(
+    useCallback(() => {
+      console.log(`useCallback 있음: ${count}`);
+    }, [count])
+  );
+
   return (
     <View style={styles.container}>
+      <Spacer size={100} />
+      <Button onPress={() => setCount(count + 1)}>
+        <Typography variant="h1" color="black">
+          {count}
+        </Typography>
+      </Button>
       <Header>
         <Header.Title>MAIN</Header.Title>
       </Header>
