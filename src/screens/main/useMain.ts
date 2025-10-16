@@ -16,7 +16,6 @@ const useMain = () => {
   );
   
   const fetchList = useCallback(async () => {
-    console.log(' fetchList');
     setList(await getList());
     const monthlyAverage = await getMonthlyAverage();
     setAverage(monthlyAverage);

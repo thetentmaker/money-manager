@@ -509,6 +509,7 @@ const useMain = () => {
 
   // fetchList를 useCallback으로 메모이제이션
   const fetchList = useCallback(async () => {
+    console.log("A")
     setList(await getList());
     const monthlyAverage = await getMonthlyAverage();
     setAverage(monthlyAverage);
@@ -558,7 +559,7 @@ const useMain = () => {
 
 
 
-## useState의 초기값 설정을 useState 객체 생성을 피해야 하는 이유
+## useState의 초기값 설정할 때 useState 객체 생성을 피해야 하는 이유
 
 - `({ ... })` 객체는 매 리렌더링마다 새로 생성되나요? -> 예, JS 표현식이라 매번 실행됨
 - 그 객체가 상태 초기화에 다시 사용되나요? -> X 초기값을 무시하고 기본 상태 유지함
@@ -619,7 +620,7 @@ const DEFAULT_ITEM: AccountBookHistory = {
 
 const useAddUpdate = () => {
   const [item, setItem] = useState<AccountBookHistory>(() => {
-    return route.params?.item ?? { ...DEFAULT_ITEM };
+    return route.params?.item ?? DEFAULT_ITEM
   });
 };
 ```
@@ -634,7 +635,7 @@ const useAddUpdate = () => {
 
 ```ts
 // 다양한 타입 표현 가능
-type Name = string;
+type Name = string | null
 type Age = number;
 type Status = 'active' | 'inactive';
 type Point = [number, number];
@@ -882,11 +883,12 @@ setCount(count + 1);
 
 ```ts
 // 함수형 업데이트
-setCount(prev => prev + 9);
+setCount(prev => prev + 9);x
+setCount(prev => prev + 1);
 setCount(prev => prev + 1);
 // ↓ 함수 종료
 // ↓ React 순차 실행 (0→9→1)
-// ↓ 재렌더링 (count = 10)
+// ↓ 재렌더링 (count = 11)
 ```
 
 ### 테스트: 직접, 합수형 모두 렌더링 1회
@@ -917,6 +919,7 @@ setCount(prev => prev + 1);
           console.log('count:', count);
           setCount(prevState => prevState + 1);
           console.log('count:', count);
+    
         }}
       >
 ```
@@ -928,3 +931,346 @@ setCount(prev => prev + 1);
 - `setCount(count + 1)`은 호출 시점에 이미 값으로 평가됨
 - React가 개입할 타이밍이 없음
 - 함수로 전달하면 React가 실행 시점을 제어 가능
+
+# TypeScript 슈퍼셋과 Type/Interface 혼용 원리
+
+## 1. TypeScript는 JavaScript의 슈퍼셋
+
+**슈퍼셋(Superset)**: 상위 집합. TypeScript는 JavaScript의 모든 기능을 포함하면서 추가 기능(타입 시스템)을 제공합니다.
+
+````ts
+// ✅ 모든 JavaScript 코드는 유효한 TypeScript 코드
+const greeting = "Hello";
+function add(a, b) {
+  return a + b;
+}
+
+// ✅ TypeScript 추가 기능 (타입 어노테이션)
+const greeting: string = "Hello";
+function add(a: number, b: number): number {
+  return a + b;
+}
+```
+
+### 슈퍼셋 관계
+```
+┌─────────────────────────────────┐
+│       TypeScript (슈퍼셋)        │
+│  ┌───────────────────────────┐  │
+│  │   JavaScript (서브셋)      │  │
+│  │                           │  │
+│  │  - 변수, 함수, 객체       │  │
+│  │  - 프로토타입             │  │
+│  │  - 클로저                 │  │
+│  └───────────────────────────┘  │
+│                                 │
+│  + 타입 시스템                   │
+│  + Interface                    │
+│  + Type Alias                   │
+│  + 제네릭                        │
+│  + Enum                         │
+└─────────────────────────────────┘
+````
+
+## 2. 구조적 타이핑 (Structural Typing)
+
+TypeScript는 **구조적 타이핑**을 사용합니다. 이는 타입의 이름이 아닌 **구조(형태)**로 호환성을 판단합니다.
+
+```ts
+interface Person {
+  name: string;
+  age: number;
+}
+
+type User = {
+  name: string;
+  age: number;
+}
+
+// 이름은 다르지만 구조가 같으면 호환됨
+const person: Person = { name: "John", age: 30 };
+const user: User = person; // ✅ 가능
+```
+
+### 타입의 슈퍼셋/서브셋 관계
+
+```ts
+interface Animal {
+  name: string;
+}
+
+interface Dog {
+  name: string;
+  breed: string;
+}
+
+// Dog는 Animal의 슈퍼셋 (더 많은 속성을 가짐)
+// Animal은 Dog의 서브셋 (더 적은 속성을 가짐)
+
+const dog: Dog = { name: "Buddy", breed: "Labrador" };
+const animal: Animal = dog; // ✅ 슈퍼셋을 서브셋에 할당 가능
+
+const animal2: Animal = { name: "Cat" };
+const dog2: Dog = animal2; // ❌ 서브셋을 슈퍼셋에 할당 불가 (breed 없음)
+```
+
+## 3. Interface와 Type의 혼용 원리
+
+### 3.1 컴파일러의 내부 동작
+
+TypeScript 컴파일러는 `interface`와 `type`을 모두 동일한 **구조 표현**으로 변환합니다.
+
+```ts
+interface IUser {
+  name: string;
+}
+
+type TUser = {
+  name: string;
+}
+
+// 컴파일러 내부적으로는 둘 다 동일하게 처리:
+// { name: string }
+```
+
+### 3.2 타입 호환성 검사 알고리즘
+
+````ts
+function greet(user: IUser) {
+  console.log(user.name);
+}
+
+const myUser: TUser = { name: "Alice" };
+greet(myUser); // ✅ 작동!
+```
+
+**컴파일러 검사 과정:**
+```
+1. greet 함수는 IUser 타입을 요구
+2. myUser는 TUser 타입
+3. 호환성 검사:
+   - IUser 구조: { name: string }
+   - TUser 구조: { name: string }
+   - 구조가 동일 → ✅ 호환 가능
+````
+
+### 3.3 확장 시 혼용
+
+```ts
+// Interface 기반
+interface BaseProps {
+  id: number;
+}
+
+// Type으로 확장
+type WithName = {
+  name: string;
+}
+
+// Interface와 Type 혼용
+type UserProps = BaseProps & WithName;
+// 결과: { id: number; name: string; }
+
+// Type을 Interface로 확장
+interface AdminProps extends WithName {
+  role: string;
+}
+// 결과: { name: string; role: string; }
+```
+
+## 4. React Native Props에서의 실전 활용
+
+### 패턴 1: 기본 혼용
+
+```tsx
+interface CommonProps {
+  testID?: string;
+  accessible?: boolean;
+}
+
+type StyleProps = {
+  backgroundColor?: string;
+  padding?: number;
+}
+
+// 혼용하여 컴포넌트 Props 정의
+type ButtonProps = CommonProps & StyleProps & {
+  title: string;
+  onPress: () => void;
+}
+
+const Button: React.FC<ButtonProps> = (props) => {
+  return (
+    <TouchableOpacity
+      testID={props.testID}
+      style={{ 
+        backgroundColor: props.backgroundColor,
+        padding: props.padding 
+      }}
+      onPress={props.onPress}
+    >
+      <Text>{props.title}</Text>
+    </TouchableOpacity>
+  );
+};
+```
+
+### 패턴 2: 제네릭과 혼용
+
+```tsx
+interface ListProps<T> {
+  data: T[];
+  renderItem: (item: T) => React.ReactNode;
+}
+
+type User = {
+  id: number;
+  name: string;
+}
+
+// 구체화
+type UserListProps = ListProps<User> & {
+  onUserSelect: (user: User) => void;
+}
+
+const UserList: React.FC<UserListProps> = ({ data, renderItem, onUserSelect }) => {
+  return (
+    <FlatList
+      data={data}
+      renderItem={({ item }) => (
+        <TouchableOpacity onPress={() => onUserSelect(item)}>
+          {renderItem(item)}
+        </TouchableOpacity>
+      )}
+    />
+  );
+};
+```
+
+### 패턴 3: 조건부 Props
+
+```tsx
+interface BaseCardProps {
+  title: string;
+}
+
+type CardWithImage = BaseCardProps & {
+  type: 'image';
+  imageUrl: string;
+}
+
+type CardWithIcon = BaseCardProps & {
+  type: 'icon';
+  iconName: string;
+}
+
+// 유니온 타입으로 조합
+type CardProps = CardWithImage | CardWithIcon;
+
+const Card: React.FC<CardProps> = (props) => {
+  return (
+    <View>
+      <Text>{props.title}</Text>
+      {props.type === 'image' && <Image source={{ uri: props.imageUrl }} />}
+      {props.type === 'icon' && <Icon name={props.iconName} />}
+    </View>
+  );
+};
+```
+
+## 5. 컴파일 후 동작
+
+**중요: 타입 정보는 컴파일 후 완전히 제거됩니다.**
+
+```ts
+// TypeScript 코드
+interface IUser {
+  name: string;
+}
+
+type TUser = {
+  name: string;
+}
+
+function greet(user: IUser): void {
+  console.log(user.name);
+}
+
+const myUser: TUser = { name: "Alice" };
+greet(myUser);
+```
+
+## 6. Interface vs Type 선택 가이드
+
+| 상황            | 권장      | 이유                          |
+| --------------- | --------- | ----------------------------- |
+| React Props     | Interface | 확장 가능성, 선언 병합.       |
+| 유니온/인터섹션 | Type      | Union, Intersection 지워.     |
+| 유틸리티 타입   | Type      | Pick, Omit, Partial 등과 조합 |
+| API 응답        | Interface | 확장 및 구현에 유리           |
+| 함수 타입       | Type      | 간결한 문법                   |
+
+```ts
+// Props: Interface 선호
+interface ButtonProps {
+  title: string;
+  onPress: () => void;
+}
+
+// 유니온: Type 사용
+type Status = 'idle' | 'loading' | 'success' | 'error';
+
+// 유틸리티: Type 사용
+type PartialUser = Partial<User>;
+type UserKeys = keyof User;
+
+// API: Interface 선호
+interface ApiResponse {
+  data: any;
+  status: number;
+}
+```
+
+## 7. 핵심 정리
+
+### TypeScript 슈퍼셋의 의미
+
+- TypeScript는 JavaScript의 모든 기능 + 타입 시스템
+- 모든 JavaScript 코드는 유효한 TypeScript 코드
+- 타입 정보는 컴파일 시에만 존재, 런타임 비용 없음
+
+### Interface와 Type 혼용 가능 이유
+
+1. **구조적 타이핑**: 이름이 아닌 구조로 판단
+2. **동일한 내부 표현**: 컴파일러가 둘을 동일하게 처리
+3. **런타임 제거**: 컴파일 후 모두 사라지므로 성능 차이 없음
+4. **타입 호환성**: 구조만 맞으면 자유롭게 조합 가능
+
+### 실무 권장사항
+
+- **일관성 유지**: 팀 내 컨벤션 통일
+- **적재적소 활용**: 각 키워드의 장점 활용
+- **과도한 복잡도 지양**: 단순하고 명확하게 작성
+- **문서화**: 복잡한 타입은 주석으로 의도 설명
+
+```tsx
+// ✅ 좋은 예: 명확하고 간결
+interface UserProps {
+  name: string;
+  email: string;
+}
+
+type UserWithId = UserProps & { id: number };
+
+// ❌ 나쁜 예: 과도하게 복잡
+type ComplexType = (BaseType & ExtendedType) | 
+  (Partial<BaseType> & Required<Pick<ExtendedType, 'id'>>) &
+  Omit<OtherType, keyof BaseType>;
+```
+
+------
+
+**참고 자료**
+
+- [TypeScript 공식 문서 - Type vs Interface](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#differences-between-type-aliases-and-interfaces)
+- [구조적 타이핑 설명](https://www.typescriptlang.org/docs/handbook/type-compatibility.html)
